@@ -1,23 +1,40 @@
 import React, {FC, useEffect, useState} from "react";
-import {ContentBlock, ContentState, Editor, EditorState, Entity, Modifier, RichUtils, SelectionState} from "draft-js";
-import {stat} from "fs";
+import {
+    AtomicBlockUtils,
+    ContentBlock,
+    ContentState,
+    Editor,
+    EditorState,
+    Entity,
+    genKey,
+    Modifier,
+    RichUtils,
+    SelectionState
+} from "draft-js";
+
+import {List, Map} from "immutable";
+import {CustomInsertBlock} from "./insertBlock";
 
 interface ITextEditor {
     inlineStyles: { [keys: string]: boolean },
     requestInsert: boolean,
-    requestInsertBlock: boolean
+    requestInsertBlock: boolean,
+    getIsBlockInserted: (b: boolean) => void,
 }
 
 export const TextEditor: FC<ITextEditor> = ({
                                                 inlineStyles,
                                                 requestInsert,
-                                                requestInsertBlock
+                                                requestInsertBlock,
+                                                getIsBlockInserted
                                             }) => {
 
     const [editorState, setEditorState] = useState<EditorState>(() => EditorState.createEmpty())
     const [isBold, setIsBold] = useState<boolean>()
     const [isItalic, setIsItalic] = useState<boolean>()
     const [isUnderline, setIsUnderline] = useState<boolean>()
+
+    const [isBlockInserted, setIsBlockInserted] = useState<boolean>(false)
 
     const findEntityRanges = (content = editorState.getCurrentContent()) => {
         let block = content.getBlocksAsArray()[0];
@@ -127,52 +144,69 @@ export const TextEditor: FC<ITextEditor> = ({
         setEditorState(RichUtils.toggleInlineStyle(editorState, "UNDERLINE"))
     }, [isUnderline])
 
-    /*useEffect(() => {
-        /!*console.log(editorState.getCurrentInlineStyle().map((value) => console.log(value)))*!/
-        /!*
-                let newState = RichUtils.toggleInlineStyle(editorState, "BOLD")
-                console.log(newState.getCurrentInlineStyle().size)*!/
-
-        let state = editorState
-        for (let [k] of Object.entries(inlineStyles)) {
-            switch (k) {
-                case "isBold":
-                    console.log("BOLD:", inlineStyles[k])
-                    if (inlineStyles[k])
-                        state = RichUtils.toggleInlineStyle(editorState, "BOLD")
-                    break
-                case "isItalic":
-                    if (inlineStyles[k])
-                        state = RichUtils.toggleInlineStyle(editorState, "ITALIC")
-                    break
-                case "isUnderlined":
-                    if (inlineStyles[k])
-                        state = RichUtils.toggleInlineStyle(editorState, "UNDERLINE")
-            }
-        }
-        setEditorState(state)
-    }, [inlineStyles])*/
-
     useEffect(() => console.log(inlineStyles), [inlineStyles])
 
-    useEffect(() => console.log(requestInsertBlock), [requestInsertBlock])
+    useEffect(() => {
+
+    }, [])
+
+    useEffect(() => {
+        getIsBlockInserted(isBlockInserted)
+    }, [isBlockInserted])
+
+    useEffect(() => {
+        if (requestInsertBlock) {
+            let newState = editorState
+            const contentState = editorState.getCurrentContent()
+            let contentStateWithEntity = contentState.createEntity(
+                "customTextBlock",
+                "MUTABLE", {}
+            )
+
+            const selection = newState.getSelection()
+
+            contentStateWithEntity = Modifier.setBlockType(contentStateWithEntity, selection, "customTextBlock")
+
+            const entityKey = contentStateWithEntity.getLastCreatedEntityKey()
+            const newEditorState = EditorState.set(newState, {
+                currentContent: contentStateWithEntity
+            })
+            console.log("KAJSHNDKJSAD", newEditorState.getCurrentContent().getBlocksAsArray()[0].getType())
+            setEditorState(newEditorState)
+            setIsBlockInserted(true)
+        }
+    }, [requestInsertBlock])
     const toggleGreenBackground = (contentBlock: ContentBlock) => {
 
         // set new editor state here
         const type = contentBlock.getType()
-        console.log("Type", type)
 
-        if (requestInsertBlock)
+        if (type === "customTextBlock")
             return "makeMeGreen"
-        else
-            return "default"
+
+        return "default"
+    }
+
+    const renderInsertBlock = (contentBlock: ContentBlock) => {
+        const type = contentBlock.getType()
+
+        console.log("TYPE = ", type)
+
+        if (type === "customTextBlock") {
+            return {
+                component: CustomInsertBlock,
+                props: {}
+            }
+        }
     }
 
     return (
         <>
             <div>
-                <Editor editorState={editorState} onChange={setEditorState} blockStyleFn={toggleGreenBackground}/>
-                <button>AHSDVBJBAJHSBD</button>
+                <Editor editorState={editorState} onChange={setEditorState}
+                        blockStyleFn={toggleGreenBackground}
+                        blockRendererFn={renderInsertBlock}
+                />
             </div>
         </>
     )

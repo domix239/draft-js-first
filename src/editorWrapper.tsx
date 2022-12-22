@@ -23,7 +23,7 @@ export const EditorWrapper = () => {
         isUnderlined: false
     })
 
-    useEffect(() => setToggleInsert(false), [toggleInsert])
+    //useEffect(() => setToggleInsert(false), [toggleInsert])
 
     useEffect(() => {
         setInlineStyle({
@@ -49,7 +49,12 @@ export const EditorWrapper = () => {
                 }
             </div>
             <div className={"editor-wrapper"}>
-                <TextEditor inlineStyles={inlineStyle} requestInsert={toggleInsert} requestInsertBlock={toggleInsertBlock}/>
+                <TextEditor inlineStyles={inlineStyle} requestInsert={toggleInsert}
+                            requestInsertBlock={toggleInsertBlock} getIsBlockInserted={(b:boolean) => {
+                    if (b)
+                        setToggleInsertBlock(false)
+                }
+                }/>
             </div>
             <div>
                 <button
@@ -58,9 +63,10 @@ export const EditorWrapper = () => {
                 >Insert Text
                 </button>
                 <button
-                    onMouseDown={(e:any) => e.preventDefault()}
-                    onClick={() => setToggleInsertBlock(!toggleInsertBlock)}
-                    >Insert Block</button>
+                    onMouseDown={(e: any) => e.preventDefault()}
+                    onClick={() => setToggleInsertBlock(true)}
+                >Insert Block
+                </button>
             </div>
         </div>
     )
