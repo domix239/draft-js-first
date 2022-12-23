@@ -1,5 +1,5 @@
 import React, {FC, useEffect, useState} from "react";
-import {
+import Draft, {
     AtomicBlockUtils,
     ContentBlock,
     ContentState,
@@ -11,8 +11,6 @@ import {
     RichUtils,
     SelectionState
 } from "draft-js";
-
-import {List, Map} from "immutable";
 import {CustomInsertBlock} from "./insertBlock";
 
 interface ITextEditor {
@@ -33,8 +31,11 @@ export const TextEditor: FC<ITextEditor> = ({
     const [isBold, setIsBold] = useState<boolean>()
     const [isItalic, setIsItalic] = useState<boolean>()
     const [isUnderline, setIsUnderline] = useState<boolean>()
-
     const [isBlockInserted, setIsBlockInserted] = useState<boolean>(false)
+
+    const [isBoldMarked, setIsBoldMarked] = useState<boolean>(false)
+    const [isItalicMarked, setIsItalicMarked] = useState<boolean>(false)
+    const [isUnderlineMarked, setIsUnderlineMarked] = useState<boolean>(false)
 
     const findEntityRanges = (content = editorState.getCurrentContent()) => {
         let block = content.getBlocksAsArray()[0];
@@ -53,6 +54,71 @@ export const TextEditor: FC<ITextEditor> = ({
         }
         return result;
     }
+
+    useEffect(() => {
+        let tempBoldMarker = false
+        let tempItalicMarker = false
+        let tempUnderlineMarker = false
+
+        editorState.getSelection().
+
+        editorState.getCurrentInlineStyle().map((value, _) => {
+            if (value?.includes("BOLD")) tempBoldMarker = true
+            if (value?.includes("ITALIC")) tempItalicMarker = true
+            if(value?.includes("UNDERLINE")) tempUnderlineMarker = true
+        })
+
+        setIsBoldMarked(tempBoldMarker)
+        setIsItalicMarked(tempItalicMarker)
+        setIsUnderlineMarked(tempUnderlineMarker)
+    },[editorState])
+
+    useEffect(() => {
+
+        let ele = document.getElementById("bold_btn")
+
+        if(ele){
+            if(isBoldMarked) {
+                ele.style.background = "lightyellow"
+                ele.style.fontWeight = "bold"
+            }
+            else {
+                ele.style.background = ""
+                ele.style.fontWeight = ""
+            }
+        }
+
+    },[isBoldMarked])
+
+    useEffect(() => {
+        let ele = document.getElementById("italic_btn")
+
+        if(ele){
+            if(isItalicMarked) {
+                ele.style.background = "lightyellow"
+                ele.style.fontWeight = "bold"
+            }
+            else {
+                ele.style.background = ""
+                ele.style.fontWeight = ""
+            }
+        }
+    },[isItalicMarked])
+
+    useEffect(() => {
+        let ele = document.getElementById("underline_btn")
+
+        if (ele) {
+            if(isUnderlineMarked) {
+                ele.style.background = "lightyellow"
+                ele.style.fontWeight = "bold"
+            }
+            else {
+                ele.style.background = ""
+                ele.style.fontWeight = ""
+            }
+        }
+    },[isUnderlineMarked])
 
     const findClosestTag = (pos: number) => {
         return findEntityRanges().reduce(
@@ -171,7 +237,6 @@ export const TextEditor: FC<ITextEditor> = ({
             const newEditorState = EditorState.set(newState, {
                 currentContent: contentStateWithEntity
             })
-            console.log("KAJSHNDKJSAD", newEditorState.getCurrentContent().getBlocksAsArray()[0].getType())
             setEditorState(newEditorState)
             setIsBlockInserted(true)
         }
@@ -189,8 +254,6 @@ export const TextEditor: FC<ITextEditor> = ({
 
     const renderInsertBlock = (contentBlock: ContentBlock) => {
         const type = contentBlock.getType()
-
-        console.log("TYPE = ", type)
 
         if (type === "customTextBlock") {
             return {

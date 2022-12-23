@@ -37,7 +37,7 @@ export const EditorWrapper = () => {
         <div>
             <div className={"button-wrapper"}>
                 {
-                    buttons.map((value, index) => <Button id={index.toString()} displayText={value} getState={(b) => {
+                    buttons.map((value, index) => <Button id={value.toLowerCase()+"_btn"} displayText={value} getState={(b) => {
                         if (value.includes("Bold"))
                             setIsBold(b)
                         else if (value.includes("Italic"))
