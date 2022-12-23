@@ -60,8 +60,6 @@ export const TextEditor: FC<ITextEditor> = ({
         let tempItalicMarker = false
         let tempUnderlineMarker = false
 
-        editorState.getSelection().
-
         editorState.getCurrentInlineStyle().map((value, _) => {
             if (value?.includes("BOLD")) tempBoldMarker = true
             if (value?.includes("ITALIC")) tempItalicMarker = true
